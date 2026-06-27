@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Une invitation très spéciale</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=EB+Garamond:ital@0;1&family=Pinyon+Script&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --night:#190a10;
+    --night-2:#30121d;
+    --paper:#f4e8d4;
+    --paper-2:#efdcc0;
+    --ink:#3a2418;
+    --ink-soft:#6e4a37;
+    --gold:#c79a4e;
+    --gold-bright:#f0cf8a;
+    --wine:#7c2334;
+    --wine-deep:#5a1626;
+    --flame:#ffb347;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+
+  body{
+    min-height:100svh;
+    background:
+      radial-gradient(130% 100% at 50% -15%, var(--night-2) 0%, var(--night) 52%, #0c0407 100%);
+    color:var(--paper);
+    font-family:'EB Garamond', Georgia, serif;
+    display:flex; align-items:center; justify-content:center;
+    padding:clamp(18px,5vw,56px);
+    overflow-x:hidden;
+    position:relative;
+  }
+  /* vignette + halo de bougie qui respire */
+  body::before{
+    content:""; position:fixed; inset:0; pointer-events:none; z-index:0;
+    background:
+      radial-gradient(55% 42% at 50% 6%, rgba(255,176,90,.22), transparent 60%),
+      radial-gradient(120% 90% at 50% 50%, transparent 55%, rgba(0,0,0,.55) 100%);
+    animation:breathe 6s ease-in-out infinite;
+  }
+  @keyframes breathe{0%,100%{opacity:.75}50%{opacity:1}}
+
+  /* couche de particules (braises + pétales) */
+  .sky{position:fixed; inset:0; overflow:hidden; pointer-events:none; z-index:0}
+  .ember{
+    position:absolute; bottom:-20px; width:5px; height:5px; border-radius:50%;
+    background:radial-gradient(circle at 50% 40%, #fff2cf, var(--flame) 50%, rgba(255,90,30,0) 75%);
+    filter:blur(.3px);
+    animation:floatUp linear infinite;
+    opacity:0;
+  }
+  @keyframes floatUp{
+    0%{transform:translateY(0) translateX(0) scale(.6);opacity:0}
+    12%{opacity:.9}
+    80%{opacity:.7}
+    100%{transform:translateY(-105vh) translateX(var(--drift,20px)) scale(1.1);opacity:0}
+  }
+  .petal{
+    position:absolute; top:-40px;
+    width:18px; height:18px; opacity:0;
+    animation:fall linear infinite;
+  }
+  .petal svg{display:block;width:100%;height:100%;filter:drop-shadow(0 2px 4px rgba(0,0,0,.3))}
+  @keyframes fall{
+    0%{transform:translateY(-40px) rotate(0deg) translateX(0);opacity:0}
+    10%{opacity:.85}
+    90%{opacity:.7}
+    100%{transform:translateY(108vh) rotate(420deg) translateX(var(--sway,40px));opacity:0}
+  }
+
+  .stage{ width:min(580px,100%); position:relative; z-index:1; perspective:1400px }
+
+  /* Bougie */
+  .candle{display:flex;flex-direction:column;align-items:center;margin-bottom:8px}
+  .glow{
+    position:absolute; top:-14px; width:220px; height:220px; border-radius:50%;
+    background:radial-gradient(circle, rgba(255,170,80,.35), transparent 65%);
+    animation:breathe 5s ease-in-out infinite; pointer-events:none;
+  }
+  .flame{
+    position:relative; z-index:2;
+    width:16px;height:34px;
+    background:radial-gradient(50% 60% at 50% 70%, #fff7da, var(--flame) 45%, #ff6a2a 80%, transparent);
+    border-radius:50% 50% 48% 48% / 70% 70% 40% 40%;
+    filter:blur(.4px);
+    transform-origin:50% 100%;
+    animation:flicker 1.6s ease-in-out infinite;
+    box-shadow:0 -8px 30px 8px rgba(255,150,60,.6);
+  }
+  @keyframes flicker{
+    0%,100%{transform:translateX(0) scaleY(1) rotate(-1deg);opacity:.96}
+    25%{transform:translateX(.7px) scaleY(1.1) rotate(1.6deg);opacity:1}
+    50%{transform:translateX(-.6px) scaleY(.92) rotate(-1.2deg);opacity:.9}
+    75%{transform:translateX(.5px) scaleY(1.05) rotate(1deg);opacity:1}
+  }
+  .wick{width:2px;height:8px;background:#3a2a20;border-radius:2px;z-index:2}
+  .stick{
+    width:20px;height:30px;z-index:2;
+    background:linear-gradient(180deg,#f7eed8,#d9c39a);
+    border-radius:3px;
+    box-shadow:inset -3px 0 4px rgba(0,0,0,.18), inset 3px 0 3px rgba(255,255,255,.45);
+  }
+
+  /* Carte = simple support (le parchemin se déroule à l'intérieur) */
+  .card{
+    position:relative;
+    transform-style:preserve-3d;
+    transition:transform .25s ease-out;
+  }
+
+  /* Le parchemin qui se déroule de haut en bas */
+  .parchment{
+    position:relative;
+    background:linear-gradient(180deg, rgba(255,255,255,.05), transparent), var(--paper);
+    color:var(--ink);
+    border-radius:5px;
+    padding:clamp(30px,6vw,52px) clamp(24px,6vw,50px) clamp(34px,6vw,46px);
+    box-shadow:
+      0 1px 0 rgba(255,255,255,.55) inset,
+      0 50px 90px -32px rgba(0,0,0,.85),
+      0 0 0 1px rgba(124,35,52,.14);
+    background-image:radial-gradient(rgba(124,35,52,.05) 1px, transparent 1px);
+    background-size:14px 14px;
+    clip-path:inset(0 0 100% 0);
+    animation:unroll 2.4s cubic-bezier(.22,.61,.36,1) .35s both;
+  }
+  @keyframes unroll{
+    from{clip-path:inset(0 0 100% 0)}
+    to{clip-path:inset(0 0 0% 0)}
+  }
+  .parchment::after{
+    content:"";position:absolute;inset:13px;
+    border:1.5px solid rgba(199,154,78,.5);
+    border-radius:3px;pointer-events:none;
+    box-shadow:0 0 0 1px rgba(199,154,78,.15) inset;
+  }
+  /* les éléments internes sont révélés par le déroulé, pas par un fondu individuel */
+  .parchment .fade{opacity:1;transform:none;animation:none}
+  .parchment .title{animation:shimmer 7s linear infinite}
+
+  /* Le rouleau de bois qui descend */
+  .roller{
+    position:absolute;left:-8px;right:-8px;top:0;height:18px;z-index:4;
+    border-radius:10px;
+    background:linear-gradient(180deg,#5a3a22 0%,#8a5a30 30%,#c98a4a 50%,#7a4a26 72%,#3e2614 100%);
+    box-shadow:0 6px 16px -4px rgba(0,0,0,.6), inset 0 1px 2px rgba(255,220,170,.5), inset 0 -2px 3px rgba(0,0,0,.4);
+    animation:rollDown 2.4s cubic-bezier(.22,.61,.36,1) .35s both, rollerOut .5s ease 2.55s forwards;
+  }
+  .roller::before,.roller::after{
+    content:"";position:absolute;top:50%;width:14px;height:24px;
+    transform:translateY(-50%);border-radius:4px;
+    background:radial-gradient(circle at 40% 35%, var(--gold-bright), var(--gold) 55%, #8a6526 100%);
+    box-shadow:0 2px 6px -2px rgba(0,0,0,.6);
+  }
+  .roller::before{left:-7px}
+  .roller::after{right:-7px}
+  @keyframes rollDown{from{top:0}to{top:calc(100% - 9px)}}
+  @keyframes rollerOut{to{opacity:0}}
+
+  .eyebrow{
+    text-align:center; font-family:'Cormorant Garamond',serif;
+    letter-spacing:.42em; text-transform:uppercase; font-size:.72rem;
+    color:var(--wine); margin-bottom:8px;
+  }
+  .script{
+    text-align:center; font-family:'Pinyon Script',cursive;
+    font-size:clamp(1.4rem,5vw,2rem); color:var(--gold);
+    line-height:1; margin-bottom:4px;
+  }
+  .title{
+    font-family:'Cormorant Garamond',serif; font-weight:700; font-style:italic;
+    text-align:center; line-height:1.02;
+    font-size:clamp(2.1rem,8.5vw,3.1rem);
+    background:linear-gradient(100deg,#7c2334 0%,#9a3145 22%,#c79a4e 42%,#f0cf8a 50%,#c79a4e 58%,#7c2334 80%);
+    background-size:280% auto;
+    -webkit-background-clip:text;background-clip:text;
+    -webkit-text-fill-color:transparent;color:transparent;
+    animation:shimmer 7s linear infinite;
+  }
+  @keyframes shimmer{to{background-position:280% center}}
+  .subtitle{
+    text-align:center; font-style:italic; color:var(--ink-soft);
+    margin-top:12px; font-size:1.05rem;
+  }
+  .rule{
+    width:70px;height:1px;margin:24px auto 6px;
+    background:linear-gradient(90deg,transparent,var(--gold),transparent);
+    position:relative;
+  }
+  .rule::before{
+    content:"❦";position:absolute;top:50%;left:50%;
+    transform:translate(-50%,-50%);
+    background:var(--paper);padding:0 12px;color:var(--gold);font-size:1.05rem;
+  }
+  .lede{
+    text-align:center;color:var(--ink-soft);font-size:1.02rem;
+    margin:20px auto 24px;max-width:40ch;line-height:1.55;
+  }
+
+  /* Plats */
+  .course{border-top:1px solid rgba(124,35,52,.16);padding:22px 0}
+  .course:first-of-type{border-top:none}
+  .course-head{
+    display:flex;align-items:baseline;gap:12px;justify-content:center;
+    font-family:'Cormorant Garamond',serif;
+  }
+  .course-roman{color:var(--gold);font-size:.95rem;letter-spacing:.15em}
+  .course-name{
+    font-size:1.4rem;font-weight:600;letter-spacing:.18em;
+    text-transform:uppercase;color:var(--wine);
+  }
+  .teaser{
+    text-align:center;font-style:italic;line-height:1.55;
+    color:var(--ink);margin:10px auto 0;max-width:42ch;
+  }
+
+  /* Sceau de cire */
+  .reveal{margin-top:16px;display:flex;justify-content:center;min-height:64px;align-items:center}
+  .seal{
+    appearance:none;border:none;cursor:pointer;position:relative;
+    width:58px;height:58px;border-radius:50% 48% 52% 47%/47% 52% 48% 53%;
+    background:
+      radial-gradient(circle at 34% 30%, #b23b4b, var(--wine) 45%, var(--wine-deep) 100%);
+    box-shadow:
+      0 8px 18px -6px rgba(90,22,38,.8),
+      inset 0 2px 5px rgba(255,255,255,.25),
+      inset 0 -6px 10px rgba(0,0,0,.35);
+    display:grid;place-items:center;
+    transition:transform .3s ease, box-shadow .3s ease;
+    animation:sealPulse 3.4s ease-in-out infinite;
+  }
+  @keyframes sealPulse{0%,100%{box-shadow:0 8px 18px -6px rgba(90,22,38,.8),inset 0 2px 5px rgba(255,255,255,.25),inset 0 -6px 10px rgba(0,0,0,.35)}50%{box-shadow:0 8px 26px -4px rgba(176,60,75,.7),inset 0 2px 5px rgba(255,255,255,.3),inset 0 -6px 10px rgba(0,0,0,.35)}}
+  .seal::after{
+    content:"♥";color:var(--gold-bright);font-size:1.3rem;
+    text-shadow:0 1px 2px rgba(0,0,0,.4);
+  }
+  .seal:hover{transform:translateY(-3px) scale(1.06) rotate(-3deg)}
+  .seal:active{transform:scale(.92)}
+  .seal:focus-visible{outline:2px solid var(--gold);outline-offset:4px}
+  .seal-hint{
+    font-family:'EB Garamond',serif;font-style:italic;color:var(--ink-soft);
+    font-size:.85rem;margin-left:12px;align-self:center;
+  }
+  .seal.breaking{animation:none;transform:scale(1.25) rotate(8deg);opacity:0;
+    box-shadow:0 0 30px 6px rgba(176,60,75,.5);transition:transform .5s ease, opacity .5s ease}
+
+  .secret{
+    max-height:0;overflow:hidden;opacity:0;
+    transition:max-height .65s ease, opacity .65s ease, margin .65s ease;
+    text-align:center;font-style:italic;color:var(--ink-soft);
+    line-height:1.55;max-width:40ch;margin:0 auto;
+  }
+  .course.open .secret{max-height:160px;opacity:1;margin-top:6px}
+  .course.open .reveal{display:none}
+
+  .signoff{margin-top:32px;text-align:center}
+  .signoff .note{font-style:italic;color:var(--ink-soft);font-size:.98rem;line-height:1.6}
+  .heart{color:var(--wine)}
+
+  .rsvp{margin-top:24px;text-align:center}
+  .rsvp button{
+    appearance:none;cursor:pointer;border:1px solid var(--gold);
+    background:transparent;color:var(--wine);
+    font-family:'Cormorant Garamond',serif;font-weight:600;
+    letter-spacing:.22em;text-transform:uppercase;font-size:.82rem;
+    padding:14px 28px;border-radius:2px;position:relative;overflow:hidden;
+    transition:color .3s, transform .2s;
+  }
+  .rsvp button::before{
+    content:"";position:absolute;inset:0;background:var(--wine);
+    transform:scaleX(0);transform-origin:left;transition:transform .35s ease;z-index:-1;
+  }
+  .rsvp button:hover{color:var(--paper)}
+  .rsvp button:hover::before{transform:scaleX(1)}
+  .rsvp button:active{transform:scale(.97)}
+  .rsvp button:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+  .rsvp .answer{
+    margin-top:16px;font-style:italic;color:var(--wine);font-size:1.08rem;
+    opacity:0;transform:translateY(8px);transition:opacity .6s, transform .6s;
+  }
+  .rsvp.done .answer{opacity:1;transform:none}
+  .rsvp.done button{display:none}
+
+  /* entrées en scène */
+  .fade{opacity:0;transform:translateY(16px);animation:rise 1s ease forwards}
+  .d1{animation-delay:.2s}.d2{animation-delay:.4s}.d3{animation-delay:.6s}
+  .d4{animation-delay:.8s}.d5{animation-delay:1s}.d6{animation-delay:1.2s}
+  @keyframes rise{to{opacity:1;transform:none}}
+
+  /* éclat au moment où l'on brise un sceau */
+  .spark{position:absolute;width:6px;height:6px;border-radius:50%;
+    background:radial-gradient(circle,#fff2cf,var(--gold) 60%,transparent);
+    pointer-events:none;z-index:5;opacity:1}
+
+  /* ---- enveloppe surprise ---- */
+  .surprise{border-top:1px solid rgba(124,35,52,.16);padding:24px 0;text-align:center}
+  .env-wrap{margin-top:18px;display:flex;flex-direction:column;align-items:center;gap:10px}
+  .envelope{
+    appearance:none;border:none;cursor:pointer;background:transparent;
+    position:relative;width:200px;height:128px;perspective:700px;
+  }
+  .env-pocket{
+    position:absolute;inset:0;border-radius:6px;
+    background:linear-gradient(180deg,#efdcc0,#e2cba6);
+    box-shadow:0 12px 26px -10px rgba(90,40,20,.55), inset 0 0 0 1px rgba(199,154,78,.5);
+    overflow:hidden;
+  }
+  .env-pocket::before{ /* pli en V */
+    content:"";position:absolute;left:0;right:0;bottom:0;height:100%;
+    background:
+      linear-gradient(45deg, transparent 49.5%, rgba(124,35,52,.12) 50%, transparent 50.5%),
+      linear-gradient(-45deg, transparent 49.5%, rgba(124,35,52,.12) 50%, transparent 50.5%);
+  }
+  .env-flap{
+    position:absolute;top:0;left:0;width:100%;height:64px;z-index:3;
+    transform-origin:top;transition:transform .8s cubic-bezier(.6,.05,.25,1), z-index 0s .4s;
+    background:linear-gradient(180deg,#f3e2c8,#e6cfad);
+    clip-path:polygon(0 0,100% 0,50% 100%);
+    box-shadow:0 4px 8px -4px rgba(0,0,0,.3);
+  }
+  .env-seal{
+    position:absolute;top:46px;left:50%;transform:translate(-50%,0);z-index:4;
+    width:42px;height:42px;display:grid;place-items:center;border-radius:50% 48% 52% 47%/47% 52% 48% 53%;
+    color:var(--gold-bright);font-size:1.05rem;
+    background:radial-gradient(circle at 34% 30%, #b23b4b, var(--wine) 45%, var(--wine-deep) 100%);
+    box-shadow:0 6px 14px -5px rgba(90,22,38,.8), inset 0 2px 4px rgba(255,255,255,.25), inset 0 -5px 8px rgba(0,0,0,.35);
+    transition:transform .45s ease, opacity .45s ease;
+    animation:sealPulse 3.4s ease-in-out infinite;
+  }
+  .envelope:hover .env-seal{transform:translate(-50%,-3px) scale(1.05)}
+  .envelope:focus-visible{outline:2px solid var(--gold);outline-offset:5px;border-radius:6px}
+  .envelope.open .env-flap{transform:rotateX(180deg);z-index:1}
+  .envelope.open .env-seal{transform:translate(-50%,-14px) scale(.4) rotate(20deg);opacity:0}
+  .env-hint{font-family:'EB Garamond',serif;font-style:italic;color:var(--ink-soft);font-size:.86rem}
+  .envelope.open ~ .env-hint{opacity:0;transition:opacity .3s}
+
+  .surprise-reveal{
+    max-height:0;overflow:hidden;opacity:0;
+    transition:max-height .7s ease .25s, opacity .7s ease .25s, margin .7s ease;
+  }
+  .surprise.open .surprise-reveal{max-height:220px;opacity:1;margin-top:18px}
+  .surprise-text{
+    font-style:italic;line-height:1.6;color:var(--ink);max-width:40ch;margin:0 auto;
+  }
+  .surprise-text strong{color:var(--wine);font-style:normal;font-weight:600;letter-spacing:.02em}
+
+  /* ---- écran de déverrouillage ---- */
+  body.locked .stage{visibility:hidden}
+  body.locked .parchment, body.locked .roller{animation-play-state:paused}
+  .lock{
+    position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;
+    padding:clamp(18px,5vw,40px);
+    background:radial-gradient(120% 90% at 50% 30%, rgba(48,18,29,.55), rgba(12,4,7,.82));
+    backdrop-filter:blur(3px);
+    transition:opacity .9s ease, visibility .9s;
+  }
+  .lock.open{opacity:0;visibility:hidden}
+  .lock-card{
+    width:min(420px,100%);text-align:center;color:var(--paper);
+    background:linear-gradient(180deg, rgba(255,255,255,.04), transparent), rgba(36,15,22,.55);
+    border:1px solid rgba(199,154,78,.45);border-radius:8px;
+    padding:clamp(30px,7vw,44px) clamp(24px,6vw,38px);
+    box-shadow:0 40px 90px -30px rgba(0,0,0,.9), inset 0 1px 0 rgba(255,255,255,.08);
+    animation:rise 1s ease both;
+  }
+  .lock-seal{
+    width:62px;height:62px;margin:0 auto 18px;border-radius:50% 48% 52% 47%/47% 52% 48% 53%;
+    display:grid;place-items:center;font-size:1.5rem;color:var(--gold-bright);
+    background:radial-gradient(circle at 34% 30%, #b23b4b, var(--wine) 45%, var(--wine-deep) 100%);
+    box-shadow:0 8px 18px -6px rgba(90,22,38,.8), inset 0 2px 5px rgba(255,255,255,.25), inset 0 -6px 10px rgba(0,0,0,.35);
+    animation:sealPulse 3.4s ease-in-out infinite;
+  }
+  .lock-eyebrow{font-family:'Cormorant Garamond',serif;letter-spacing:.4em;text-transform:uppercase;
+    font-size:.7rem;color:var(--gold);margin-bottom:8px}
+  .lock-title{font-family:'Cormorant Garamond',serif;font-style:italic;font-weight:600;
+    font-size:clamp(1.5rem,6vw,2rem);color:var(--paper);line-height:1.1}
+  .lock-hint{color:#d8c3ad;font-size:.98rem;line-height:1.5;margin:14px auto 22px;max-width:32ch}
+  .lock-hint em{color:var(--gold-bright);font-style:italic}
+  .lock-field{display:flex;flex-direction:column;gap:12px}
+  #code{
+    width:100%;text-align:center;font-family:'EB Garamond',serif;
+    font-size:1.25rem;letter-spacing:.18em;color:var(--ink);
+    background:var(--paper);border:1px solid rgba(199,154,78,.6);border-radius:4px;
+    padding:13px 14px;outline:none;transition:box-shadow .25s, border-color .25s;
+  }
+  #code::placeholder{color:#b39a7e;letter-spacing:.12em}
+  #code:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(199,154,78,.25)}
+  #unlock{
+    appearance:none;cursor:pointer;border:1px solid var(--gold);color:var(--night);
+    background:linear-gradient(180deg,var(--gold-bright),var(--gold));
+    font-family:'Cormorant Garamond',serif;font-weight:700;letter-spacing:.2em;
+    text-transform:uppercase;font-size:.82rem;padding:14px 18px;border-radius:4px;
+    transition:transform .2s, filter .25s;
+  }
+  #unlock:hover{filter:brightness(1.07)}
+  #unlock:active{transform:scale(.97)}
+  #unlock:focus-visible{outline:2px solid var(--gold-bright);outline-offset:3px}
+  .lock-error{min-height:1.2em;margin-top:14px;color:#f0a9a9;font-style:italic;font-size:.92rem;opacity:0;transition:opacity .3s}
+  .lock-error.show{opacity:1}
+  .lock-card.shake{animation:shake .5s ease}
+  @keyframes shake{10%,90%{transform:translateX(-2px)}20%,80%{transform:translateX(4px)}30%,50%,70%{transform:translateX(-7px)}40%,60%{transform:translateX(7px)}}
+
+  /* bouton musique */
+  .music-btn{
+    position:fixed;right:18px;bottom:18px;z-index:6;
+    display:flex;align-items:center;gap:8px;cursor:pointer;
+    font-family:'Cormorant Garamond',serif;letter-spacing:.16em;
+    text-transform:uppercase;font-size:.72rem;
+    color:var(--gold-bright);
+    background:rgba(40,16,24,.72);
+    border:1px solid rgba(199,154,78,.5);
+    border-radius:999px;padding:9px 16px;
+    backdrop-filter:blur(6px);
+    box-shadow:0 8px 22px -10px rgba(0,0,0,.8);
+    transition:transform .25s ease, border-color .3s, color .3s;
+  }
+  .music-btn:hover{transform:translateY(-2px);border-color:var(--gold)}
+  .music-btn:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+  .music-btn .ico{font-size:1rem;line-height:1}
+  .music-btn.playing .ico{animation:bob 1.4s ease-in-out infinite}
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
+  .music-btn.playing{color:#fff;border-color:var(--gold-bright)}
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation:none !important;transition:none !important}
+    .fade{opacity:1;transform:none}
+    .parchment{clip-path:none !important}
+    .roller{display:none !important}
+    .surprise-reveal{max-height:none !important;opacity:1 !important;margin-top:18px}
+    .env-flap{transform:rotateX(180deg)}
+    .title{-webkit-text-fill-color:var(--wine);color:var(--wine)}
+  }
+</style>
+</head>
+<body class="locked">
+  <div class="sky" id="sky" aria-hidden="true"></div>
+
+  <div class="lock" id="lock">
+    <div class="lock-card">
+      <div class="lock-seal" aria-hidden="true">♥</div>
+      <p class="lock-eyebrow">avant d'entrer…</p>
+      <h2 class="lock-title">Cette lettre t'est scellée</h2>
+      <p class="lock-hint">Un seul code l'ouvre : <em>le jour où tout a commencé pour nous.</em></p>
+      <div class="lock-field">
+        <input id="code" type="text" inputmode="numeric" autocomplete="off"
+               maxlength="10" placeholder="JJ / MM / AAAA" aria-label="Code : notre date d'anniversaire">
+        <button id="unlock" type="button">Ouvrir la lettre</button>
+      </div>
+      <p class="lock-error" id="lockError" role="alert"></p>
+    </div>
+  </div>
+
+  <button id="music" class="music-btn" type="button" aria-pressed="false" aria-label="Activer la musique douce">
+    <span class="ico">♪</span><span class="lbl">musique</span>
+  </button>
+
+  <div class="stage" id="stage">
+    <div class="candle fade" aria-hidden="true">
+      <div class="glow"></div>
+      <div class="flame"></div>
+      <div class="wick"></div>
+      <div class="stick"></div>
+    </div>
+
+    <main class="card" id="card">
+      <div class="roller" aria-hidden="true"></div>
+      <div class="parchment">
+      <p class="eyebrow fade d1">Une invitation très spéciale</p>
+      <p class="script fade d1">pour Ghita</p>
+      <h1 class="title fade d2">Un dîner,<br>rien que nous deux</h1>
+      <p class="subtitle fade d3">Vendredi 3 juillet · à la maison · à la lueur des bougies</p>
+
+      <div class="rule fade d3"></div>
+      <p class="lede fade d3">
+        Trois plats. Trois secrets. Je garde tout pour moi…<br>
+        à toi de briser les sceaux pour deviner ce qui t'attend.
+      </p>
+
+      <section class="course fade d4" data-course>
+        <div class="course-head"><span class="course-roman">I</span><span class="course-name">L'entrée</span></div>
+        <p class="teaser">Quelque chose de léger pour commencer… mais ne te fie pas aux apparences. Ce premier plat cache déjà une intention.</p>
+        <div class="reveal"><button class="seal" type="button" aria-label="Briser le sceau de l'entrée"></button><span class="seal-hint">brise le sceau</span></div>
+        <p class="secret">Un indice : ça se savoure les yeux fermés. Le reste, tu le découvriras à table.</p>
+      </section>
+
+      <section class="course fade d5" data-course>
+        <div class="course-head"><span class="course-roman">II</span><span class="course-name">Le plat</span></div>
+        <p class="teaser">Là, tout bascule. Le cœur du repas, celui que je prépare en pensant à toi. Tu ne devineras pas — et c'est exactement ce que je veux.</p>
+        <div class="reveal"><button class="seal" type="button" aria-label="Briser le sceau du plat"></button><span class="seal-hint">brise le sceau</span></div>
+        <p class="secret">Disons simplement… qu'il y aura une chose que tu adores. Mais laquelle ? Mystère.</p>
+      </section>
+
+      <section class="course fade d6" data-course>
+        <div class="course-head"><span class="course-roman">III</span><span class="course-name">Le dessert</span></div>
+        <p class="teaser">Et pour finir… une dernière surprise. Sucrée, oui. Mais ce n'est peut-être pas la seule chose qui t'attend à la fin de la soirée.</p>
+        <div class="reveal"><button class="seal" type="button" aria-label="Briser le sceau du dessert"></button><span class="seal-hint">brise le sceau</span></div>
+        <p class="secret">Celui-là, je ne dirai rien du tout. Certaines surprises se gardent jusqu'au bout.</p>
+      </section>
+
+      <section class="surprise fade d6" id="surprise">
+        <div class="course-head"><span class="course-roman">✶</span><span class="course-name">Et après le dessert…</span></div>
+        <p class="teaser">Tu croyais que la soirée s'arrêtait là ? Une dernière chose t'attend — une activité que j'ai préparée rien que pour nous deux.</p>
+        <div class="env-wrap">
+          <button class="envelope" id="envelope" type="button" aria-expanded="false" aria-label="Ouvrir l'enveloppe surprise">
+            <span class="env-flap"></span>
+            <span class="env-pocket"></span>
+            <span class="env-seal">♥</span>
+          </button>
+          <p class="env-hint">ouvre l'enveloppe</p>
+        </div>
+        <div class="surprise-reveal" id="surpriseReveal">
+          <p class="surprise-text">
+            Une <strong>activité surprise</strong> t'attend une fois la dernière bouchée avalée.<br>
+            Je ne dirai pas quoi… seulement ceci : prévois le cœur léger, et fais-moi confiance. ✨
+          </p>
+        </div>
+      </section>
+
+        <div class="rule"></div>
+        <p class="note">Tenue : confortable. Appétit : recommandé.<br>
+        Réponse souhaitée… mais de toute façon, je ne te laisse pas y échapper. <span class="heart">❤</span></p>
+      </div>
+
+      <div class="rsvp fade d6">
+        <button type="button" id="yes">J'accepte avec plaisir</button>
+        <p class="answer">Parfait. La table est déjà réservée. Rendez-vous vendredi. 🕯️</p>
+      </div>
+      </div>
+    </main>
+  </div>
+
+<script>
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ---- braises + pétales ---- */
+  (function(){
+    if(reduce) return;
+    var sky = document.getElementById('sky');
+    for(var i=0;i<22;i++){
+      var e=document.createElement('span');
+      e.className='ember';
+      e.style.left=(Math.random()*100)+'%';
+      var dur=7+Math.random()*9;
+      e.style.animationDuration=dur+'s';
+      e.style.animationDelay=(-Math.random()*dur)+'s';
+      e.style.setProperty('--drift',(Math.random()*80-40)+'px');
+      var s=3+Math.random()*4; e.style.width=s+'px'; e.style.height=s+'px';
+      sky.appendChild(e);
+    }
+    var petalSVG='<svg viewBox="0 0 24 24"><path d="M12 2C7 6 4 11 12 22C20 11 17 6 12 2Z" fill="#9a3145"/><path d="M12 2C9 6 8 12 12 22C16 12 15 6 12 2Z" fill="#7c2334" opacity=".55"/></svg>';
+    for(var j=0;j<9;j++){
+      var p=document.createElement('div');
+      p.className='petal'; p.innerHTML=petalSVG;
+      p.style.left=(Math.random()*100)+'%';
+      var pd=9+Math.random()*8;
+      p.style.animationDuration=pd+'s';
+      p.style.animationDelay=(-Math.random()*pd)+'s';
+      p.style.setProperty('--sway',(Math.random()*120-60)+'px');
+      var ps=12+Math.random()*12; p.style.width=ps+'px'; p.style.height=ps+'px';
+      sky.appendChild(p);
+    }
+  })();
+
+  /* ---- carillon doux ---- */
+  var actx=null;
+  function chime(){
+    try{
+      actx = actx || new (window.AudioContext||window.webkitAudioContext)();
+      var notes=[659.25,987.77]; // mi, si
+      notes.forEach(function(f,k){
+        var o=actx.createOscillator(), g=actx.createGain();
+        o.type='sine'; o.frequency.value=f;
+        var t=actx.currentTime+k*0.09;
+        g.gain.setValueAtTime(0,t);
+        g.gain.linearRampToValueAtTime(0.12,t+0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001,t+1.1);
+        o.connect(g); g.connect(actx.destination);
+        o.start(t); o.stop(t+1.2);
+      });
+    }catch(e){}
+  }
+
+  /* ---- éclats ---- */
+  function sparkle(x,y){
+    if(reduce) return;
+    for(var i=0;i<10;i++){
+      var s=document.createElement('span');
+      s.className='spark';
+      s.style.left=x+'px'; s.style.top=y+'px';
+      document.body.appendChild(s);
+      var ang=Math.random()*Math.PI*2, dist=30+Math.random()*45;
+      var dx=Math.cos(ang)*dist, dy=Math.sin(ang)*dist;
+      s.animate([
+        {transform:'translate(0,0) scale(1)',opacity:1},
+        {transform:'translate('+dx+'px,'+dy+'px) scale(0)',opacity:0}
+      ],{duration:600+Math.random()*300,easing:'cubic-bezier(.2,.7,.3,1)'}).onfinish=function(){this.effect.target.remove();};
+    }
+  }
+
+  /* ---- briser les sceaux ---- */
+  document.querySelectorAll('[data-course] .seal').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var r=btn.getBoundingClientRect();
+      sparkle(r.left+r.width/2, r.top+r.height/2);
+      chime();
+      btn.classList.add('breaking');
+      var course=btn.closest('[data-course]');
+      setTimeout(function(){course.classList.add('open');}, 280);
+    });
+  });
+
+  /* ---- enveloppe surprise ---- */
+  (function(){
+    var env=document.getElementById('envelope');
+    if(!env) return;
+    env.addEventListener('click', function(){
+      if(env.classList.contains('open')) return;
+      var r=env.querySelector('.env-seal').getBoundingClientRect();
+      sparkle(r.left+r.width/2, r.top+r.height/2);
+      chime();
+      env.classList.add('open');
+      env.setAttribute('aria-expanded','true');
+      document.getElementById('surprise').classList.add('open');
+    });
+  })();
+
+  /* ---- RSVP ---- */
+  document.getElementById('yes').addEventListener('click', function(){
+    var r=this.getBoundingClientRect();
+    sparkle(r.left+r.width/2, r.top+r.height/2);
+    chime();
+    document.querySelector('.rsvp').classList.add('done');
+    // petite pluie de coeurs
+    if(reduce) return;
+    var sky=document.getElementById('sky');
+    for(var i=0;i<14;i++){
+      (function(k){
+        setTimeout(function(){
+          var h=document.createElement('div');
+          h.textContent='❤';
+          h.style.position='fixed';
+          h.style.left=(Math.random()*100)+'vw';
+          h.style.top='-30px';
+          h.style.fontSize=(14+Math.random()*16)+'px';
+          h.style.color='#9a3145';
+          h.style.zIndex=2; h.style.pointerEvents='none';
+          sky.appendChild(h);
+          h.animate([
+            {transform:'translateY(0) rotate(0deg)',opacity:1},
+            {transform:'translateY(105vh) rotate('+(Math.random()*360)+'deg)',opacity:0}
+          ],{duration:3500+Math.random()*1500,easing:'ease-in'}).onfinish=function(){h.remove();};
+        }, k*120);
+      })(i);
+    }
+  });
+
+  /* ---- musique douce (Web Audio, sans fichier externe) ---- */
+  (function(){
+    var btn=document.getElementById('music');
+    var ctx=null, master=null, playing=false, timer=null;
+    // progression chaleureuse : Cmaj7 - Am7 - Fmaj7 - G
+    var chords=[
+      [261.63,329.63,392.00,493.88],
+      [220.00,261.63,329.63,392.00],
+      [174.61,261.63,349.23,440.00],
+      [196.00,246.94,293.66,392.00]
+    ];
+    var step=0;
+
+    function voice(freq,t,dur,vol,type){
+      var o=ctx.createOscillator(), g=ctx.createGain();
+      o.type=type||'sine'; o.frequency.value=freq;
+      g.gain.setValueAtTime(0,t);
+      g.gain.linearRampToValueAtTime(vol,t+0.4);
+      g.gain.linearRampToValueAtTime(vol*0.8,t+dur*0.6);
+      g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+      o.connect(g); g.connect(master);
+      o.start(t); o.stop(t+dur+0.1);
+    }
+
+    function bar(){
+      if(!playing) return;
+      var t=ctx.currentTime+0.05;
+      var ch=chords[step%chords.length];
+      // nappe douce
+      ch.forEach(function(f){ voice(f,t,4.0,0.05,'sine'); });
+      // basse chaude
+      voice(ch[0]/2,t,4.0,0.06,'triangle');
+      // arpège délicat
+      var seq=[ch[0],ch[2],ch[1],ch[3],ch[2],ch[3]];
+      seq.forEach(function(f,i){ voice(f*2,t+0.5+i*0.55,1.0,0.035,'sine'); });
+      step++;
+      timer=setTimeout(bar,4000);
+    }
+
+    function start(){
+      ctx=ctx||new (window.AudioContext||window.webkitAudioContext)();
+      if(ctx.state==='suspended') ctx.resume();
+      master=master||(function(){var m=ctx.createGain();m.gain.value=0.9;m.connect(ctx.destination);return m;})();
+      playing=true; btn.classList.add('playing'); btn.setAttribute('aria-pressed','true');
+      btn.querySelector('.lbl').textContent='couper'; btn.querySelector('.ico').textContent='♫';
+      step=0; bar();
+    }
+    function stop(){
+      playing=false; clearTimeout(timer);
+      btn.classList.remove('playing'); btn.setAttribute('aria-pressed','false');
+      btn.querySelector('.lbl').textContent='musique'; btn.querySelector('.ico').textContent='♪';
+      if(master){ master.gain.linearRampToValueAtTime(0.0001,ctx.currentTime+0.5);
+        setTimeout(function(){ if(!playing && master) master.gain.value=0.9; },600); }
+    }
+    btn.addEventListener('click', function(){ userToggled=true; playing?stop():start(); });
+
+    /* --- démarrage après déverrouillage --- */
+    var userToggled=false;
+    function tryAutostart(){
+      if(userToggled){ cleanup(); return; }            // l'utilisateur a déjà choisi
+      if(!playing) start();                              // lance la mélodie
+      if(ctx && ctx.state==='suspended') ctx.resume();   // débloque l'audio si besoin
+      if(ctx && ctx.state==='running') cleanup();        // ok, on arrête d'écouter
+    }
+    var gestures=['pointerdown','click','keydown','touchstart','scroll','mousemove'];
+    function onGesture(){ tryAutostart(); }
+    function cleanup(){ gestures.forEach(function(ev){ window.removeEventListener(ev,onGesture,true); }); }
+    // exposé : appelé au moment du déverrouillage de la lettre
+    window.__startMusic=function(){
+      tryAutostart();
+      gestures.forEach(function(ev){ window.addEventListener(ev,onGesture,{capture:true,passive:true}); });
+    };
+  })();
+  /* ---- déverrouillage par le code (notre date : 25/02/2026) ---- */
+  (function(){
+    var SECRET='25022026'; // 25 février 2026
+    var lock=document.getElementById('lock');
+    var input=document.getElementById('code');
+    var go=document.getElementById('unlock');
+    var err=document.getElementById('lockError');
+    var card=document.querySelector('.lock-card');
+
+    input.addEventListener('input', function(){
+      var d=input.value.replace(/\D/g,'').slice(0,8);
+      var out=d;
+      if(d.length>4) out=d.slice(0,2)+'/'+d.slice(2,4)+'/'+d.slice(4);
+      else if(d.length>2) out=d.slice(0,2)+'/'+d.slice(2);
+      input.value=out;
+      err.classList.remove('show');
+    });
+
+    function attempt(){
+      var digits=input.value.replace(/\D/g,'');
+      if(digits===SECRET){ openLetter(); }
+      else{
+        err.textContent='Ce n\u2019est pas tout \u00e0 fait \u00e7a\u2026 souviens-toi du jour o\u00f9 tout a commenc\u00e9. \u2764';
+        err.classList.add('show');
+        card.classList.remove('shake'); void card.offsetWidth; card.classList.add('shake');
+      }
+    }
+
+    function openLetter(){
+      lock.classList.add('open');
+      document.body.classList.remove('locked');       // lance le déroulé du parchemin
+      if(window.__startMusic) window.__startMusic();   // démarre la musique douce
+      setTimeout(function(){ lock.style.display='none'; }, 950);
+    }
+
+    go.addEventListener('click', attempt);
+    input.addEventListener('keydown', function(e){ if(e.key==='Enter') attempt(); });
+    window.addEventListener('load', function(){ setTimeout(function(){ input.focus(); }, 400); });
+  })();
+
+  (function(){
+    if(reduce || window.matchMedia('(pointer: coarse)').matches) return;
+    var card=document.getElementById('card'), stage=document.getElementById('stage');
+    stage.addEventListener('pointermove', function(ev){
+      var r=stage.getBoundingClientRect();
+      var px=(ev.clientX-r.left)/r.width-.5;
+      var py=(ev.clientY-r.top)/r.height-.5;
+      card.style.transform='rotateY('+(px*5)+'deg) rotateX('+(-py*5)+'deg)';
+    });
+    stage.addEventListener('pointerleave', function(){
+      card.style.transform='rotateY(0) rotateX(0)';
+    });
+  })();
+</script>
+</body>
+</html>
